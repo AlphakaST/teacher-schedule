@@ -39,9 +39,14 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // uploads 디렉토리 확인 및 생성
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
+    // Vercel 서버리스 환경에서는 /tmp 디렉토리 사용
+    // 로컬 개발 환경에서는 public/uploads 사용
+    const isVercel = process.env.VERCEL === '1';
+    const uploadsDir = isVercel 
+      ? '/tmp' 
+      : join(process.cwd(), 'public', 'uploads');
+    
+    if (!isVercel && !existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true });
     }
 
