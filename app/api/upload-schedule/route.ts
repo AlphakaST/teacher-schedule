@@ -61,20 +61,15 @@ export async function POST(request: NextRequest) {
     // PDF 텍스트 추출
     let pdfText: string;
     try {
-      // pdf-parse v2 API 사용
+      // pdf-parse 기본 API 사용 (서버리스 환경 호환)
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { PDFParse } = require('pdf-parse');
+      const pdfParse = require('pdf-parse');
       
-      if (typeof PDFParse !== 'function') {
-        throw new Error('PDFParse 클래스를 로드할 수 없습니다.');
-      }
-      
-      // PDFParse 인스턴스 생성 및 텍스트 추출
-      // pdf-parse v2에서는 buffer를 'data' 파라미터로 전달
-      const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      pdfText = result.text;
+      // 기본 API 사용 (DOMMatrix 오류 방지)
+      const data = await pdfParse(buffer);
+      pdfText = data.text;
     } catch (error: any) {
+      console.error('PDF 파싱 오류:', error);
       return NextResponse.json(
         { success: false, error: `PDF 파싱 실패: ${error.message}` },
         { status: 400 }
